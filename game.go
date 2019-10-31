@@ -32,27 +32,12 @@ type game struct {
 	ring          pattay.Ring
 }
 
-const (
-	FirstHandForClub = 0
-	SecondLastHand   = 11
-)
-
 //NewGame NewGame
 func NewGame() Game {
 
-	playerNames := []string{pattay.EastPlayer, pattay.WestPlayer, pattay.NorthPlayer, pattay.SouthPlayer}
-	var players []pattay.Player
-	for i := 0; i < 4; i++ {
-		players = append(players, pattay.NewPlayer(playerNames[i]))
-	}
 	deck := pattay.NewDeck()
-
-	var rp []pattay.RingPlayer
-	for i := 0; i < len(players); i++ {
-		rp = append(rp, players[i].(pattay.RingPlayer))
-	}
-
-	r, _ := pattay.NewRing(rp...)
+	players := makePlayers()
+	r := makeRing(players)
 
 	return &game{
 		ring:     r,
@@ -60,46 +45,6 @@ func NewGame() Game {
 		deck:     deck,
 		handsWon: make(map[string]int, 4),
 	}
-}
-
-func (g *game) Players() []pattay.Player {
-	return g.players
-}
-
-func (g *game) ShuffleDeck(n int) error {
-	return g.deck.Shuffle(n)
-}
-func (g *game) DistributeCards() error {
-
-	cards := len(g.deck.CardsInDeck())
-	playerTurn := 0
-	for i := cards - 1; i >= 0; i-- {
-		card, _ := g.deck.DrawCard(i)
-		g.players[playerTurn].ReceiveCard(card)
-		playerTurn++
-		if playerTurn == 4 {
-			playerTurn = 0
-		}
-
-	}
-
-	return nil
-}
-
-func isFirstHand(turn int) bool {
-	return turn == FirstHandForClub
-}
-func isSecondLastHand(turn int) bool {
-	return turn == SecondLastHand
-}
-func canWinHand(turn int) bool {
-	if isFirstHand(turn) {
-		return false
-	}
-	if isSecondLastHand(turn) {
-		return false
-	}
-	return true
 }
 
 func (g *game) PlayHand(turn int, trump *string, lastHead pattay.Player) (Hand, error) {
@@ -155,12 +100,4 @@ func (g *game) PlayHand(turn int, trump *string, lastHead pattay.Player) (Hand, 
 	}
 	return hand, nil
 
-}
-
-func (g *game) HandsOnGround() []Hand {
-	return g.handsOnGround
-}
-
-func (g *game) HandsWonBy(player pattay.Player) int {
-	return g.handsWon[player.Name()]
 }
