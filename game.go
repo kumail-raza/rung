@@ -53,16 +53,8 @@ func (g *game) PlayHand(turn int, trump *string, lastHead pattay.Player) (Hand, 
 	cardsDelt := 0
 
 	if isFirstHand(turn) {
-		for i, p := range g.players {
-			clubTwo := pattay.NewCard(pattay.Club, pattay.Two)
-			if has, cardAt := p.HasCard(clubTwo); has {
-				hand.AddCard(p, cardAt)
-				g.players = append(g.players[:i], g.players[i+1:]...)
-				cardsDelt++
-				g.ring.SetCurrentPlayer(p)
-				break
-			}
-		}
+		g.playFirstHand(hand)
+		cardsDelt++
 	}
 
 	if cardsDelt == 0 {
@@ -70,17 +62,9 @@ func (g *game) PlayHand(turn int, trump *string, lastHead pattay.Player) (Hand, 
 	}
 
 	for i := 0; i < 4-cardsDelt; i++ {
-		rp, err := g.ring.Next()
-		player := (rp).(pattay.Player)
-		if err != nil {
+		if err := g.playRing(cardsDelt, hand); err != nil {
 			return nil, err
 		}
-		cardAt := player.CardOnTable()
-		err = hand.AddCard(player, cardAt)
-		if err != nil {
-			return nil, err
-		}
-
 	}
 
 	g.handsOnGround = append(g.handsOnGround, hand)
