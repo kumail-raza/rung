@@ -122,10 +122,17 @@ func (h *hand) isTrumpDeclared() bool {
 }
 
 func (h *hand) setHeadForBiggestCard(cards []pattay.Card, c pattay.Card, house string, pl pattay.Player) {
+
 	biggestCardAtHand := pattay.GetBiggestCard(cards, house)
 	if c.Number() > biggestCardAtHand.Number() {
 		h.head = pl
 	}
+
+}
+
+func (h *hand) declareTrump(c pattay.Card, pl pattay.Player) {
+	h.trump = c.House()
+	h.head = pl
 
 }
 func (h *hand) AddCard(pl pattay.Player, cardAtHandIndex int) error {
@@ -150,19 +157,19 @@ func (h *hand) AddCard(pl pattay.Player, cardAtHandIndex int) error {
 	}
 
 	if !h.isTrumpDeclared() {
-		if !h.isSameHouse(c) {
 
-			if pl.HasHouse(h.house) {
-				return fmt.Errorf("player has cards of the same house")
-			}
-
-			h.trump = c.House()
-			h.head = pl
+		if h.isSameHouse(c) {
+			h.setHeadForBiggestCard(h.cards, c, h.house, pl)
 			return nil
-
 		}
-		h.setHeadForBiggestCard(h.cards, c, h.house, pl)
+
+		if pl.HasHouse(h.house) {
+			return fmt.Errorf("player has cards of the same house")
+		}
+
+		h.declareTrump(c, pl)
 		return nil
+
 	}
 
 	//if trump is running at hand
